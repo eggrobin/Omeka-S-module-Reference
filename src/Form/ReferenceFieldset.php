@@ -134,7 +134,7 @@ class ReferenceFieldset extends Fieldset
                 ],
                 'attributes' => [
                     'id' => 'reference-args-collation',
-                    'info' => 'The collation used to sort the values. This must be the name of a collation supported by the database system and consistent with the character encoding of the property values (utf8mb4); it can be the name of a custom collation if one has been defined. By default, utf8mb4_unicode_ci (the case-insensitive Default Unicode Collation Element Table) is used.'
+                    'info' => 'The collation used to sort the values. This must be the name of a collation supported by the database system and consistent with the character encoding of the property values (utf8mb4); it can be the name of a custom collation if one has been defined. By default, utf8mb4_unicode_ci (the case-insensitive Default Unicode Collation Element Table) is used.', // @translate
                     'placeholder' => 'utf8mb4_czech_ci',
                     'data-fieldset' => 'args',
                 ],
