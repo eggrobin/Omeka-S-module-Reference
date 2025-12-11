@@ -2172,7 +2172,7 @@ class References extends AbstractPlugin
         $sortBy = $this->optionsCurrent['sort_by'];
         $collation = $this->optionsCurrent['collation'];
         // TODO(egg): Validate/quote that identifier.
-        $collatedVal = 'val'
+        $collatedVal = 'val';
         if ($collation) {
             $collatedVal .= ' COLLATE ' . $collation;
         }
