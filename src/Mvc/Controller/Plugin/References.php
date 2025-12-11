@@ -840,6 +840,8 @@ class References extends AbstractPlugin
             'resource_name' => $resourceName,
             'sort_by' => $options['sort_by'] ?? 'alphabetic',
             'sort_order' => strcasecmp((string) $options['sort_order'], 'desc') === 0 ? 'DESC' : 'ASC',
+            'collation' => $options['collation'],
+            'alphabet' => $options['alphabet'] ?? range('A', 'Z'),
             'page' => !is_numeric($options['page']) || !(int) $options['page'] ? $defaultOptions['page'] : (int) $options['page'],
             'per_page' => !is_numeric($options['per_page']) || !(int) $options['per_page'] ? $defaultOptions['per_page'] : (int) $options['per_page'],
             'filters' => $options['filters'],
