@@ -168,6 +168,8 @@ return [
                 'languages' => [],
                 'sort_by' => 'alphabetic',
                 'sort_order' => 'asc',
+                'collation' => '',
+                'alphabet' => [],
                 'by_initial' => false,
                 'search_config' => '',
                 'link_to_single' => true,

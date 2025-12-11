@@ -127,6 +127,33 @@ class ReferenceFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'o:block[__blockIndex__][o:data][collation]',
+                'type' => Element\Text::class,
+                'options' => [
+                    'label' => 'Collation', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'reference-args-collation',
+                    'info' => 'The collation used to sort the values. This must be the name of a collation supported by the database system and consistent with the character encoding of the property values (utf8mb4); it can be the name of a custom collation if one has been defined. By default, utf8mb4_unicode_ci (the case-insensitive Default Unicode Collation Element Table) is used.'
+                    'placeholder' => 'utf8mb4_czech_ci',
+                    'data-fieldset' => 'args',
+                ],
+            ])
+            ->add([
+                'name' => 'o:block[__blockIndex__][o:data][alphabet]',
+                'type' => CommonElement\ArrayText::class,
+                'options' => [
+                    'label' => 'Alphabet', // @translate
+                    'info' => 'The alphabet to be used for initials. Use "|" to separate the letters; digraphs, such as Czech CH, are allowed. The alphabet should be consistent with the collation; that is, every letter of the given alphabet should be considered different by the collation, and any digraphs should be contractions in the collation. By default, the basic Latin alphabet (26 letters A through Z) is used.', // @translate
+                    'value_separator' => '|',
+                ],
+                'attributes' => [
+                    'id' => 'reference-args-alphabet',
+                    'placeholder' => 'A|B|C|Č|D|E|F|G|H|CH|I|J|K|L|M|N|O|P|Q|R|Ř|S|Š|T|U|V|W|X|Y|Z|Ž',
+                    'data-fieldset' => 'args',
+                ],
+            ])
+            ->add([
                 'name' => 'o:block[__blockIndex__][o:data][sort_order]',
                 // 'type' => CommonElement\OptionalRadio::class,
                 'type' => Element\Select::class,

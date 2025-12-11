@@ -200,6 +200,7 @@ Options are the same than the view helper:
 - `resource_name`: items (default), "item_sets", "media", "resources".
 - `sort_by`: "alphabetic" (default), "count", or any available column.
 - `sort_order`: "asc" (default) or "desc".
+<!--TODO(egg): Document the new options.-->
 - `filters`: array Limit values to the specified data. Currently managed:
   - `languages`: list of languages. Values without language are returned with
     the value "null". This option is used only for properties.

@@ -2170,6 +2170,12 @@ class References extends AbstractPlugin
         // Add alphabetic order (val asc) for ergonomy when total is the same.
 
         $sortBy = $this->optionsCurrent['sort_by'];
+        $collation = $this->optionsCurrent['collation'];
+        // TODO(egg): Validate/quote that identifier.
+        $collatedVal = 'val'
+        if ($collation) {
+            $collatedVal .= ' COLLATE ' . $collation;
+        }
         $sortOrder = $this->optionsCurrent['sort_order'];
 
         switch ($sortBy) {
@@ -2177,16 +2183,16 @@ class References extends AbstractPlugin
                 // Item sets are output by id, so the title is required.
                 if ($type === 'o:item_set') {
                     $qb
-                        ->orderBy('resource_item_set.title', $sortOrder);
+                        ->orderBy('resource_item_set.title' . $collation, $sortOrder);
                 } else {
                     $qb
-                        ->orderBy('val', $sortOrder);
+                        ->orderBy($collatedVal, $sortOrder);
                 }
                 break;
             case 'total':
                 $qb
                     ->orderBy('total', $sortOrder)
-                    ->addOrderBy('val', 'ASC');
+                    ->addOrderBy($collatedVal, 'ASC');
                 break;
             case 'values':
                 // Values are already checked in options.
@@ -2196,13 +2202,13 @@ class References extends AbstractPlugin
                 $qb
                     ->orderBy('FIELD(val, :order_values)', $sortOrder)
                     ->setParameter(':order_values', $this->optionsCurrent['filters']['values'], Connection::PARAM_STR_ARRAY)
-                    ->addOrderBy('val', 'ASC');
+                    ->addOrderBy($collatedVal, 'ASC');
                 break;
             default:
                 // Any available column.
                 $qb
                     ->orderBy($sortBy, $sortOrder)
-                    ->orderBy('val', 'ASC');
+                    ->orderBy($collatedVal, 'ASC');
                 break;
         }
 
