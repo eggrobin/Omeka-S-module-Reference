@@ -2246,28 +2246,12 @@ class References extends AbstractPlugin
 
         $first = reset($result);
         if ($this->optionsCurrent['initial']) {
-            if (extension_loaded('intl')) {
-                $transliterator = \Transliterator::createFromRules(':: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;');
-                $result = array_map(function ($v) use ($transliterator) {
-                    $v['total'] = (int) $v['total'];
-                    $v['initial'] = $transliterator->transliterate((string) $v['initial']);
-                    return $v;
-                }, $result);
-            } elseif (extension_loaded('iconv')) {
-                $result = array_map(function ($v) {
-                    $v['total'] = (int) $v['total'];
-                    $trans = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', (string) $v['initial']);
-                    $v['initial'] = $trans === false ? (string) $v['initial'] : $trans;
-                    return $v;
-                }, $result);
-            } else {
-                // Convert null into empty string.
-                $result = array_map(function ($v) {
-                    $v['total'] = (int) $v['total'];
-                    $v['initial'] = (string) $v['initial'];
-                    return $v;
-                }, $result);
-            }
+            // Convert null into empty string.
+            $result = array_map(function ($v) {
+                $v['total'] = (int) $v['total'];
+                $v['initial'] = (string) $v['initial'];
+                return $v;
+            }, $result);
         } else {
             $result = array_map(function ($v) {
                 $v['total'] = (int) $v['total'];
