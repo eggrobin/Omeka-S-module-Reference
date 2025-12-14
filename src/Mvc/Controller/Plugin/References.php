@@ -1909,41 +1909,64 @@ class References extends AbstractPlugin
     protected function manageOptions(QueryBuilder $qb, ?string $type, array $args = []): self
     {
         $expr = $qb->expr();
-        if (in_array($type, ['resource_classes', 'resource_templates', 'item_sets', 'resource_titles'])
-            && $this->optionsCurrent['initial']
+        if ((in_array($type, ['resource_classes', 'resource_templates', 'item_sets', 'resource_titles']) ||
+             $type === 'access' ||
+             $type === 'properties') &&
+            $this->optionsCurrent['initial'] === 1
         ) {
-            // TODO Doctrine doesn't manage left() and convert(), but we may not need to convert.
-            // "initial" is a reserved word from the version 8.0.27 of Mysql,
-            // but doctrine renames all aliases before and after querying.
-            $qb
-                ->addSelect(
-                    // 'CONVERT(UPPER(LEFT(value.value, 1)) USING latin1) AS initial',
-                    $this->supportAnyValue
-                        ? "ANY_VALUE(UPPER(LEFT(resource.title, {$this->optionsCurrent['initial']}))) AS initial"
-                        : "UPPER(LEFT(resource.title, {$this->optionsCurrent['initial']})) AS initial"
-                );
-        }
+            $value = 'resource.title';
+            if ($type === 'access') {
+                $value = 'access_status.level';
+            } else if ($type === 'properties') {
+                $value = $args['mainTypesString'];
+            }
+            // TODO(egg): Explain our choices here.
+            $getInitial = '(CASE ';
+            foreach ($this->optionsCurrent['alphabet'] as $letter) {
+                $collated = $this->optionsCurrent['collation'] ? ' COLLATE ' . $this->optionsCurrent['collation'] : '';
+                $getInitial .= "WHEN $value $collated >= '$letter' AND $value $collated <= '$letter\u{FFFF}' THEN '$letter' ";
+            }
+            $getInitial .= $this->supportAnyValue
+                ? "ELSE ANY_VALUE(UPPER(LEFT($value, 1))) END)"
+                : "ELSE UPPER(LEFT($value, 1)) END)"
+            $qb->addSelect($getInitial . "AS initial");
+        } else {
+            if (in_array($type, ['resource_classes', 'resource_templates', 'item_sets', 'resource_titles'])
+                && $this->optionsCurrent['initial']
+            ) {
+                // TODO Doctrine doesn't manage left() and convert(), but we may not need to convert.
+                // "initial" is a reserved word from the version 8.0.27 of Mysql,
+                // but doctrine renames all aliases before and after querying.
+                $qb
+                    ->addSelect(
+                        // 'CONVERT(UPPER(LEFT(value.value, 1)) USING latin1) AS initial',
+                        $this->supportAnyValue
+                            ? "ANY_VALUE(UPPER(LEFT(resource.title, {$this->optionsCurrent['initial']}))) AS initial"
+                            : "UPPER(LEFT(resource.title, {$this->optionsCurrent['initial']})) AS initial"
+                    );
+            }
 
-        if ($type === 'access' && $this->optionsCurrent['initial']) {
-            // TODO Doctrine doesn't manage left() and convert(), but we may not need to convert.
-            $qb
-                ->addSelect(
-                    // 'CONVERT(UPPER(LEFT(COALESCE(access_status.level, {$this->optionsCurrent['initial']}), 1)) USING latin1) AS initial',
-                    $this->supportAnyValue
-                        ? "ANY_VALUE(UPPER(LEFT(access_status.level, {$this->optionsCurrent['initial']}))) AS initial"
-                        : "UPPER(LEFT(access_status.level, {$this->optionsCurrent['initial']})) AS initial"
-                );
-        }
+            if ($type === 'access' && $this->optionsCurrent['initial']) {
+                // TODO Doctrine doesn't manage left() and convert(), but we may not need to convert.
+                $qb
+                    ->addSelect(
+                        // 'CONVERT(UPPER(LEFT(COALESCE(access_status.level, {$this->optionsCurrent['initial']}), 1)) USING latin1) AS initial',
+                        $this->supportAnyValue
+                            ? "ANY_VALUE(UPPER(LEFT(access_status.level, {$this->optionsCurrent['initial']}))) AS initial"
+                            : "UPPER(LEFT(access_status.level, {$this->optionsCurrent['initial']})) AS initial"
+                    );
+            }
 
-        if ($type === 'properties' && $this->optionsCurrent['initial']) {
-            // TODO Doctrine doesn't manage left() and convert(), but we may not need to convert.
-            $qb
-                ->addSelect(
-                    // 'CONVERT(UPPER(LEFT(COALESCE(value.value, value.uri, value_resource.title), 1)) USING latin1) AS initial',
-                    $this->supportAnyValue
-                        ? "ANY_VALUE(UPPER(LEFT({$args['mainTypesString']}, {$this->optionsCurrent['initial']}))) AS initial"
-                        : "UPPER(LEFT({$args['mainTypesString']}, {$this->optionsCurrent['initial']})) AS initial"
-                );
+            if ($type === 'properties' && $this->optionsCurrent['initial']) {
+                // TODO Doctrine doesn't manage left() and convert(), but we may not need to convert.
+                $qb
+                    ->addSelect(
+                        // 'CONVERT(UPPER(LEFT(COALESCE(value.value, value.uri, value_resource.title), 1)) USING latin1) AS initial',
+                        $this->supportAnyValue
+                            ? "ANY_VALUE(UPPER(LEFT({$args['mainTypesString']}, {$this->optionsCurrent['initial']}))) AS initial"
+                            : "UPPER(LEFT({$args['mainTypesString']}, {$this->optionsCurrent['initial']})) AS initial"
+                    );
+            }
         }
 
         if ($type === 'properties' && $this->optionsCurrent['distinct']) {
@@ -2175,9 +2198,9 @@ class References extends AbstractPlugin
         $sortBy = $this->optionsCurrent['sort_by'];
         $collation = $this->optionsCurrent['collation'];
         // TODO(egg): Validate/quote that identifier.
-        $collatedVal = 'val';
+        $collated = '';
         if ($collation) {
-            $collatedVal .= ' COLLATE ' . $collation;
+            $collated = ' COLLATE ' . $collation;
         }
         $sortOrder = $this->optionsCurrent['sort_order'];
 
@@ -2186,16 +2209,16 @@ class References extends AbstractPlugin
                 // Item sets are output by id, so the title is required.
                 if ($type === 'o:item_set') {
                     $qb
-                        ->orderBy('resource_item_set.title' . $collation, $sortOrder);
+                        ->orderBy('resource_item_set.title' . $collated, $sortOrder);
                 } else {
                     $qb
-                        ->orderBy($collatedVal, $sortOrder);
+                        ->orderBy('val' . $collated, $sortOrder);
                 }
                 break;
             case 'total':
                 $qb
                     ->orderBy('total', $sortOrder)
-                    ->addOrderBy($collatedVal, 'ASC');
+                    ->addOrderBy('val' . $collated, 'ASC');
                 break;
             case 'values':
                 // Values are already checked in options.
@@ -2205,13 +2228,13 @@ class References extends AbstractPlugin
                 $qb
                     ->orderBy('FIELD(val, :order_values)', $sortOrder)
                     ->setParameter(':order_values', $this->optionsCurrent['filters']['values'], Connection::PARAM_STR_ARRAY)
-                    ->addOrderBy($collatedVal, 'ASC');
+                    ->addOrderBy('val' . $collated, 'ASC');
                 break;
             default:
                 // Any available column.
                 $qb
                     ->orderBy($sortBy, $sortOrder)
-                    ->orderBy($collatedVal, 'ASC');
+                    ->orderBy('val' . $collated, 'ASC');
                 break;
         }
 
