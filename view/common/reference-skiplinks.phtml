@@ -43,7 +43,12 @@ if (empty($initials)) {
 // Add the empty letters.
 // Get the default list of initials for latin. To be updated for non-latin references.
 // Anyway, even in latin, some characters are not transcoded, like Œ.
-$alphabet = ['0-9' => false] + array_fill_keys(range('A', 'Z'), false);
+$alphabet = ['0-9' => false];
+if (!empty($options['alphabet'])) {
+    $alphabet += array_fill_keys(explode("|", $options['alphabet']), false);
+} else {
+    $alphabet += array_fill_keys(range('A', 'Z'), false);
+}
 $initials = array_merge($alphabet, $initials);
 // Don't display symbols if useless.
 if (empty($initials['0-9'])) unset($initials['0-9']);
