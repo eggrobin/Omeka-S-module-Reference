@@ -996,7 +996,7 @@ class References extends AbstractPlugin
                             // 'CONVERT(UPPER(LEFT($mainTypesString, $this->optionsCurrent['_initials'])) USING latin1) AS val',
                             $val = $this->supportAnyValue
                                 ? "ANY_VALUE(UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']}))) AS val"
-                                : "UPPER(LEFT($mainTypesString, {})) AS val"
+                                : "UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']})) AS val"
                         );
                 }
                 $qb->andWhere($expr->in('value.lang', ':locales'))
