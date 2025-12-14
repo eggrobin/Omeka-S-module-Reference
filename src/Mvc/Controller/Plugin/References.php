@@ -1871,7 +1871,7 @@ class References extends AbstractPlugin
                                 ->andWhere($expr->le($collatedColumn,
                                                      ":filter_upperBound"))
                                 ->setParameter('filter_lowerBound', $firstFilter)
-                                ->setParameter('filter_upperBound', $firstFilter . "\u{FFFF}")
+                                ->setParameter('filter_upperBound', $firstFilter . "\u{FFFF}");
                         } else {
                             $qb
                                 ->andWhere($expr->like($column, ":filter_$filter"))
