@@ -1921,7 +1921,7 @@ class References extends AbstractPlugin
                 $value = $args['mainTypesString'];
             }
             // TODO(egg): Explain our choices here.
-            $getInitial = '(CASE ';
+            $getInitial = '(CASE ' . $this->optionsCurrent['alphabet'];
             foreach ($this->optionsCurrent['alphabet'] as $letter) {
                 $collated = $this->optionsCurrent['collation'] ? ' COLLATE ' . $this->optionsCurrent['collation'] : '';
                 $getInitial .= "WHEN $value $collated >= '$letter' AND $value $collated <= '$letter\u{FFFF}' THEN '$letter' ";
