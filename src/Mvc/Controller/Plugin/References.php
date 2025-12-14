@@ -1215,7 +1215,12 @@ class References extends AbstractPlugin
         // "o:label" is not possible, neither "count". Use of Doctrine DBAL now.
 
         if ($this->process === 'initials') {
-            $this->optionsCurrent['_initialName'] = 'val';
+            $qb
+                ->select(
+                    $this->supportAnyValue
+                        ? "ANY_VALUE(UPPER(LEFT(resource.title, {$this->optionsCurrent['_initials']}))) AS val"
+                        : "UPPER(LEFT(resource.title, {$this->optionsCurrent['_initials']})) AS val"
+                );
         } else {
             $qb
                 ->select(
@@ -1435,7 +1440,11 @@ class References extends AbstractPlugin
          */
 
         if ($this->process === 'initials') {
-            $this->optionsCurrent['_initialName'] = 'val';
+            $qb
+                ->select(
+                    // TODO Doctrine orm doesn't manage left() and convert(), but we may not need to convert: only for diacritics.
+                    "UPPER(LEFT(resource_item_set.title, {$this->optionsCurrent['_initials']})) AS val"
+                );
         } else {
             $qb
                 ->select(
@@ -1928,7 +1937,7 @@ class References extends AbstractPlugin
             $getInitial .= $this->supportAnyValue
                 ? "ELSE ANY_VALUE(UPPER(LEFT($value, 1))) END)"
                 : "ELSE UPPER(LEFT($value, 1)) END)";
-            $qb->addSelect($getInitial . " AS" . ($this->optionsCurrent['_initialName'] ?? 'initial'));
+            $qb->addSelect($getInitial . " AS initial");
         } else {
             $beverysad ($this->optionsCurrent['initial']);
             if (in_array($type, ['resource_classes', 'resource_templates', 'item_sets', 'resource_titles'])
