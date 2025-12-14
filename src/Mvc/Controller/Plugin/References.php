@@ -986,31 +986,21 @@ class References extends AbstractPlugin
             : 'COALESCE(' . implode(', ', $mainTypes) . ')';
 
         if ($this->process === 'initials') {
-            if ($this->optionsCurrent['locale']) {
-                if ($this->optionsCurrent['_initials'] === 1) {
-                    $qb->select(
-                        getAlphabeticInitialExpression($mainTypesString) . " AS val");
-                } else {
-                    $qb
-                        ->select(
-                            // 'CONVERT(UPPER(LEFT($mainTypesString, $this->optionsCurrent['_initials'])) USING latin1) AS val',
-                            $val = $this->supportAnyValue
-                                ? "ANY_VALUE(UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']}))) AS val"
-                                : "UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']})) AS val"
-                        );
-                }
-                $qb->andWhere($expr->in('value.lang', ':locales'))
-                    ->setParameter('locales', $this->optionsCurrent['locale'], Connection::PARAM_STR_ARRAY)
-                ;
+            if ($this->optionsCurrent['_initials'] === 1) {
+                $qb->select(
+                    getAlphabeticInitialExpression($mainTypesString) . " AS val");
             } else {
-                // TODO Doctrine doesn't manage left() and convert(), but we may not need to convert. Anyway convert should be only for diacritics.
                 $qb
                     ->select(
                         // 'CONVERT(UPPER(LEFT($mainTypesString, $this->optionsCurrent['_initials'])) USING latin1) AS val',
                         $val = $this->supportAnyValue
                             ? "ANY_VALUE(UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']}))) AS val"
                             : "UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']})) AS val"
-                    )
+                    );
+            }
+            if ($this->optionsCurrent['locale']) {
+                $qb->andWhere($expr->in('value.lang', ':locales'))
+                    ->setParameter('locales', $this->optionsCurrent['locale'], Connection::PARAM_STR_ARRAY)
                 ;
             }
         } else {
