@@ -1925,11 +1925,11 @@ class References extends AbstractPlugin
         $getInitial = '(CASE ';
         foreach ($this->optionsCurrent['alphabet'] as $letter) {
             $collated = $this->optionsCurrent['collation'] ? ' COLLATE ' . $this->optionsCurrent['collation'] : '';
-            $getInitial .= "WHEN $value $collated >= '$letter' AND $value $collated <= '$letter\u{FFFF}' THEN '$letter' ";
+            $getInitial .= "WHEN $expr $collated >= '$letter' AND $expr $collated <= '$letter\u{FFFF}' THEN '$letter' ";
         }
         $getInitial .= $this->supportAnyValue
-            ? "ELSE ANY_VALUE(UPPER(LEFT($value, 1))) END)"
-            : "ELSE UPPER(LEFT($value, 1)) END)";
+            ? "ELSE ANY_VALUE(UPPER(LEFT($expr, 1))) END)"
+            : "ELSE UPPER(LEFT($expr, 1)) END)";
         return $getInitial;
     }
 
