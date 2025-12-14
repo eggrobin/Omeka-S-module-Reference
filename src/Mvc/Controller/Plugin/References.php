@@ -1866,10 +1866,10 @@ class References extends AbstractPlugin
                                 $collatedColumn .= ' COLLATE ' . $collation;
                             }
                             $qb
-                                ->andWhere($expr->ge($collatedColumn,
-                                                     ":filter_lowerBound"))
-                                ->andWhere($expr->le($collatedColumn,
-                                                     ":filter_upperBound"))
+                                ->andWhere($expr->gte($collatedColumn,
+                                                      ":filter_lowerBound"))
+                                ->andWhere($expr->lte($collatedColumn,
+                                                      ":filter_upperBound"))
                                 ->setParameter('filter_lowerBound', $firstFilter)
                                 ->setParameter('filter_upperBound', $firstFilter . "\u{FFFF}");
                         } else {
