@@ -45,7 +45,7 @@ if (empty($initials)) {
 // Anyway, even in latin, some characters are not transcoded, like Œ.
 $alphabet = ['0-9' => false];
 if (!empty($options['alphabet'])) {
-    $alphabet += array_fill_keys(explode("|", $options['alphabet']), false);
+    $alphabet += array_fill_keys($options['alphabet'], false);
 } else {
     $alphabet += array_fill_keys(range('A', 'Z'), false);
 }
