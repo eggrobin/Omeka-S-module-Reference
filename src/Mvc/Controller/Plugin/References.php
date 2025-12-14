@@ -1929,7 +1929,7 @@ class References extends AbstractPlugin
             $getInitial .= $this->supportAnyValue
                 ? "ELSE ANY_VALUE(UPPER(LEFT($value, 1))) END)"
                 : "ELSE UPPER(LEFT($value, 1)) END)";
-            $qb->addSelect($getInitial . "AS initial");
+            $qb->addSelect($getInitial . " AS initial");
         } else {
             if (in_array($type, ['resource_classes', 'resource_templates', 'item_sets', 'resource_titles'])
                 && $this->optionsCurrent['initial']
