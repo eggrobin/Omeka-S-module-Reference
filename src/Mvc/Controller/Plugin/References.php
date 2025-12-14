@@ -987,14 +987,19 @@ class References extends AbstractPlugin
 
         if ($this->process === 'initials') {
             if ($this->optionsCurrent['locale']) {
-                $qb
-                    ->select(
-                        // 'CONVERT(UPPER(LEFT($mainTypesString, $this->optionsCurrent['_initials'])) USING latin1) AS val',
-                        $val = $this->supportAnyValue
-                            ? "ANY_VALUE(UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']}))) AS val"
-                            : "UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']})) AS val"
-                    )
-                    ->andWhere($expr->in('value.lang', ':locales'))
+                if ($this->optionsCurrent['_initials'] === 1) {
+                    $qb->select(
+                        getAlphabeticInitialExpression($mainTypesString) . " AS val");
+                } else {
+                    $qb
+                        ->select(
+                            // 'CONVERT(UPPER(LEFT($mainTypesString, $this->optionsCurrent['_initials'])) USING latin1) AS val',
+                            $val = $this->supportAnyValue
+                                ? "ANY_VALUE(UPPER(LEFT($mainTypesString, {$this->optionsCurrent['_initials']}))) AS val"
+                                : "UPPER(LEFT($mainTypesString, {})) AS val"
+                        );
+                }
+                $qb->andWhere($expr->in('value.lang', ':locales'))
                     ->setParameter('locales', $this->optionsCurrent['locale'], Connection::PARAM_STR_ARRAY)
                 ;
             } else {
@@ -1914,6 +1919,20 @@ class References extends AbstractPlugin
         return $this;
     }
 
+    protected function getAlphabeticInitialExpression(string $expr): string
+    {
+        // TODO(egg): Explain our choices here.
+        $getInitial = '(CASE ';
+        foreach ($this->optionsCurrent['alphabet'] as $letter) {
+            $collated = $this->optionsCurrent['collation'] ? ' COLLATE ' . $this->optionsCurrent['collation'] : '';
+            $getInitial .= "WHEN $value $collated >= '$letter' AND $value $collated <= '$letter\u{FFFF}' THEN '$letter' ";
+        }
+        $getInitial .= $this->supportAnyValue
+            ? "ELSE ANY_VALUE(UPPER(LEFT($value, 1))) END)"
+            : "ELSE UPPER(LEFT($value, 1)) END)";
+        return $getInitial;
+    }
+
     protected function manageOptions(QueryBuilder $qb, ?string $type, array $args = []): self
     {
         $expr = $qb->expr();
@@ -1928,18 +1947,8 @@ class References extends AbstractPlugin
             } else if ($type === 'properties') {
                 $value = $args['mainTypesString'];
             }
-            // TODO(egg): Explain our choices here.
-            $getInitial = '(CASE ';
-            foreach ($this->optionsCurrent['alphabet'] as $letter) {
-                $collated = $this->optionsCurrent['collation'] ? ' COLLATE ' . $this->optionsCurrent['collation'] : '';
-                $getInitial .= "WHEN $value $collated >= '$letter' AND $value $collated <= '$letter\u{FFFF}' THEN '$letter' ";
-            }
-            $getInitial .= $this->supportAnyValue
-                ? "ELSE ANY_VALUE(UPPER(LEFT($value, 1))) END)"
-                : "ELSE UPPER(LEFT($value, 1)) END)";
-            $qb->addSelect($getInitial . " AS initial");
+            $qb->addSelect($this->getAlphabeticInitialExpression($value) . " AS initial");
         } else {
-            $beverysad ($this->optionsCurrent['initial']);
             if (in_array($type, ['resource_classes', 'resource_templates', 'item_sets', 'resource_titles'])
                 && $this->optionsCurrent['initial']
             ) {
