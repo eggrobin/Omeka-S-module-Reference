@@ -1930,6 +1930,7 @@ class References extends AbstractPlugin
                 : "ELSE UPPER(LEFT($value, 1)) END)";
             $qb->addSelect($getInitial . " AS" . ($this->optionsCurrent['_initialName'] ?? 'initial'));
         } else {
+            $beverysad ($this->optionsCurrent['initial']);
             if (in_array($type, ['resource_classes', 'resource_templates', 'item_sets', 'resource_titles'])
                 && $this->optionsCurrent['initial']
             ) {
