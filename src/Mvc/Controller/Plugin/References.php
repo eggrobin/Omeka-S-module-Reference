@@ -819,7 +819,7 @@ class References extends AbstractPlugin
             'sort_by' => $options['sort_by'] ?? 'alphabetic',
             'sort_order' => strcasecmp((string) $options['sort_order'], 'desc') === 0 ? 'DESC' : 'ASC',
             'collation' => $options['collation'],
-            'alphabet' => count($explode($options['alphabet'])) == 0 ? range('A', 'Z') : $options['alphabet'],
+            'alphabet' => $options['alphabet'],
             'page' => !is_numeric($options['page']) || !(int) $options['page'] ? $defaultOptions['page'] : (int) $options['page'],
             'per_page' => !is_numeric($options['per_page']) || !(int) $options['per_page'] ? $defaultOptions['per_page'] : (int) $options['per_page'],
             'filters' => $options['filters'],
@@ -838,6 +838,14 @@ class References extends AbstractPlugin
                 ? $options['output']
                 : 'list',
         ];
+
+        if (!is_array($options['alphabet'])) {
+            if (!$options['alphabet']) {
+                $options['alphabet'] = range('A', 'Z');
+            } else {
+                $options['alphabet'] = $explode($options['fields']);
+            }
+        }
 
         if (!is_array($options['fields'])) {
             $options['fields'] = $explode($options['fields']);
@@ -1921,7 +1929,7 @@ class References extends AbstractPlugin
                 $value = $args['mainTypesString'];
             }
             // TODO(egg): Explain our choices here.
-            $getInitial = '(CASE ' . $this->optionsCurrent['alphabet'];
+            $getInitial = '(CASE ';
             foreach ($this->optionsCurrent['alphabet'] as $letter) {
                 $collated = $this->optionsCurrent['collation'] ? ' COLLATE ' . $this->optionsCurrent['collation'] : '';
                 $getInitial .= "WHEN $value $collated >= '$letter' AND $value $collated <= '$letter\u{FFFF}' THEN '$letter' ";
