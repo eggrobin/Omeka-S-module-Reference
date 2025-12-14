@@ -843,7 +843,7 @@ class References extends AbstractPlugin
             if (!$options['alphabet']) {
                 $options['alphabet'] = range('A', 'Z');
             } else {
-                $options['alphabet'] = $explode($options['fields']);
+                $options['alphabet'] = $explode($options['alphabet']);
             }
         }
 
