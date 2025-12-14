@@ -1917,9 +1917,10 @@ class References extends AbstractPlugin
             $collated = $this->optionsCurrent['collation'] ? ' COLLATE ' . $this->optionsCurrent['collation'] : '';
             $getInitial .= "WHEN $expr $collated >= '$letter' AND $expr $collated <= '$letter\u{FFFF}' THEN '$letter' ";
         }
-        $getInitial .= $this->supportAnyValue
-            ? "ELSE ANY_VALUE(UPPER(LEFT($expr, 1))) END)"
-            : "ELSE UPPER(LEFT($expr, 1)) END)";
+        $getInitial .= "ELSE UPPER(LEFT($expr, 1)) END)";
+        if ($this->supportAnyValue) {
+            $getInitial = "ANY_VALUE" . $getInitial;
+        }
         return $getInitial;
     }
 
