@@ -1030,7 +1030,7 @@ class References extends AbstractPlugin
             ->filterByMainType($qb)
             ->filterByDataType($qb)
             ->filterByLanguage($qb)
-            ->filterByBeginOrEnd($qb, substr($val, 0, -7))
+            ->filterByBeginOrEnd($qb, substr($val, 0, -7), $this->optionsCurrent['collation'])
             ->manageOptions($qb, 'properties', ['mainTypesString' => $mainTypesString])
             ->outputMetadata($qb, 'properties');
     }
@@ -1823,8 +1823,9 @@ class References extends AbstractPlugin
      *
      *  @param string The column to filter, for example "value.value" (default),
      *  "val", or "resource.title".
+     *  @param string the name of the collation to use; only applicable to a single 'begin' filter.
      */
-    protected function filterByBeginOrEnd(QueryBuilder $qb, $column = 'value.value'): self
+    protected function filterByBeginOrEnd(QueryBuilder $qb, $column = 'value.value', $collation = null): self
     {
         if ($this->process === 'initials') {
             return $this;
@@ -1851,13 +1852,35 @@ class References extends AbstractPlugin
                             ->andWhere("REGEXP($column, :filter_09) = false")
                             ->setParameter('filter_09', $filter === 'begin' ? '^[[:alpha:]]' : '[[:alpha:]]$', ParameterType::STRING);
                     } else {
-                        $qb
-                            ->andWhere($expr->like($column, ":filter_$filter"))
-                            ->setParameter(
-                                "filter_$filter",
-                                $filterB . strtr($firstFilter, ['%' => '\%', '_' => '\_']) . $filterE,
-                                ParameterType::STRING
-                            );
+                        if ($filter === 'begin') {
+                            // U+FFFF has the maximal primary weight, so anything starting with
+                            // $firtFilter in $collation will be between $firstFilter and
+                            // $firstFilter . "\u{FFFF}".
+                            // Note that this can exclude strings that start with $firstFilter,
+                            // e.g., with Czech collation, "CH" is not between "C" and "C\u{FFFF}",
+                            // and include strings that do not start with $firstFilter, such as "Œ"
+                            // when filtering for "O" or "Š" when filtering for "S" with default
+                            // collation.
+                            $collatedColumn = $column;
+                            if ($collation) {
+                                $collatedColumn .= ' COLLATE ' . $collation;
+                            }
+                            $qb
+                                ->andWhere($expr->ge($collatedColumn,
+                                                     ":filter_lowerBound"))
+                                ->andWhere($expr->le($collatedColumn,
+                                                     ":filter_upperBound"))
+                                ->setParameter('filter_lowerBound', $firstFilter)
+                                ->setParameter('filter_upperBound', $firstFilter . "\u{FFFF}")
+                        } else {
+                            $qb
+                                ->andWhere($expr->like($column, ":filter_$filter"))
+                                ->setParameter(
+                                    "filter_$filter",
+                                    $filterB . strtr($firstFilter, ['%' => '\%', '_' => '\_']) . $filterE,
+                                    ParameterType::STRING
+                                );
+                        }
                     }
                 } elseif (count($this->optionsCurrent['filters'][$filter]) <= 20) {
                     $orX = [];
