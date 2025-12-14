@@ -988,7 +988,7 @@ class References extends AbstractPlugin
         if ($this->process === 'initials') {
             if ($this->optionsCurrent['_initials'] === 1) {
                 $qb->select(
-                    getAlphabeticInitialExpression($mainTypesString) . " AS val");
+                    $this->getAlphabeticInitialExpression($mainTypesString) . " AS val");
             } else {
                 $qb
                     ->select(
